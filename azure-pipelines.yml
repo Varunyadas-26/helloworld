@@ -1,7 +1,4 @@
-# Python package
-# Create and test a Python package on multiple Python versions.
-# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+# Python package CI/CD pipeline with improvements
 
 trigger:
 - main
@@ -21,6 +18,9 @@ strategy:
       python.version: '3.11'
 
 steps:
+- checkout: self
+  fetchDepth: 0  # Ensures full Git history is fetched
+
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(python.version)'
@@ -33,5 +33,12 @@ steps:
 
 - script: |
     pip install pytest pytest-azurepipelines
-    pytest
-  displayName: 'pytest'
+    pytest --junitxml=test-results.xml
+  displayName: 'Run Tests'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFiles: '**/test-results.xml'
+    testRunTitle: 'Python Package Tests'
+  condition: succeededOrFailed()
+  displayName: 'Publish Test Results'
