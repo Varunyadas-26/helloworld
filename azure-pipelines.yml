@@ -1,44 +1,29 @@
-# Python package CI/CD pipeline with improvements
-
+# azure-pipelines.yml
 trigger:
-- main
-
+- main # Trigger the pipeline whenever changes are pushed to the 'main' branch
+ 
 pool:
-  vmImage: ubuntu-latest
-
-strategy:
-  matrix:
-    Python38:
-      python.version: '3.8'
-    Python39:
-      python.version: '3.9'
-    Python310:
-      python.version: '3.10'
-    Python311:
-      python.version: '3.11'
-
+  vmImage: 'ubuntu-latest' # Use the latest Ubuntu image for the build agent
+ 
 steps:
-- checkout: self
-  fetchDepth: 0  # Ensures full Git history is fetched
-
 - task: UsePythonVersion@0
+  displayName: 'Use Python 3.x'
   inputs:
-    versionSpec: '$(python.version)'
-  displayName: 'Use Python $(python.version)'
-
+    versionSpec: '3.x' # Specify that we want to use any 3.x version of Python
+ 
+# - script: |
+#     python -m pip install --upgrade pip
+#   displayName: 'Install dependencies'
+ 
 - script: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
-  displayName: 'Install dependencies'
-
-- script: |
-    pip install pytest pytest-azurepipelines
-    pytest --junitxml=test-results.xml
-  displayName: 'Run Tests'
-
-- task: PublishTestResults@2
-  inputs:
-    testResultsFiles: '**/test-results.xml'
-    testRunTitle: 'Python Package Tests'
-  condition: succeededOrFailed()
-  displayName: 'Publish Test Results'
+    python helloworld.py
+  displayName: 'Run Python Script'
+  # You could add more steps here, like running tests,
+  # if this were a more complex project.
+ 
+- publish: $(System.DefaultWorkingDirectory)
+  artifact: drop
+  displayName: 'Publish Artifact'
+  # This step publishes the entire working directory as an artifact named 'drop'.
+  # In a real project, you might publish only the necessary build outputs.
+ 
